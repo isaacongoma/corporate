@@ -1,0 +1,40 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Next.js
+.next/
+out/
+build/
+
+# Environment files
+.env
+.env.*
+.env.local
+.env.production
+.env.production.local
+
+# Logs
+logs/
+*.log
+
+# Editor directories and files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage/
+
+# Prisma local DB
+prisma/dev.db
+*.sqlite
+
+# Misc
+.cache/
+dist/
+public/.cache/

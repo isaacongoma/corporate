@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String?
+  phone     String?
+  address   String?
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Setting {
+  id              Int      @id @default(autoincrement())
+  companyName     String   @default("Prime Watch Security")
+  logo            String   @default("/assets/img/logo.svg")
+  favicon         String   @default("/favicon.ico")
+  contactEmail    String   @default("info@primewatch.co.ke")
+  phoneNumbers    String   @default("+254 700 000000")
+  officeLocation  String   @default("Nairobi, Kenya")
+  facebookUrl     String?
+  twitterUrl      String?
+  instagramUrl    String?
+  pinterestUrl    String?
+  heroTitle       String   @default("Your Safety, Our Priority")
+  heroSubtitle    String   @default("Comprehensive security solutions tailored for your peace of mind.")
+  heroBtnText     String   @default("Get Protected Today")
+  footerContent   Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Page {
+  id        Int      @id @default(autoincrement())
+  slug      String   @unique
+  title     String
+  content   Json     
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Service {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String   @db.Text
+  icon        String?  
+  image       String?   
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Blog {
+  id            Int      @id @default(autoincrement())
+  title         String
+  slug          String   @unique
+  excerpt       String?  @db.VarChar(280)
+  content       String   @db.Text
+  featuredImage String?
+  published     Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model ContactMessage {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+}
