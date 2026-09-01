@@ -4,11 +4,13 @@ import PageHeader from '../components/PageHeader';
 import DataTable from '../components/DataTable';
 import Button, { IconButton } from '../components/Button';
 import Badge from '../components/Badge';
-import Card from '../components/Card';
 import Drawer from '../components/Drawer';
 import { color, font } from '../components/theme';
+import { useTheme, themes } from '../context/ThemeContext';
 
 export default function MessagesPage() {
+  const { theme } = useTheme();
+  const th = themes[theme];
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [readIds, setReadIds] = useState(() => new Set());
@@ -47,10 +49,10 @@ export default function MessagesPage() {
               fontWeight: 700, fontSize: 13, letterSpacing: '0.02em',
             }}>{initials}</div>
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontWeight: isUnread ? 700 : 600, color: color.text, fontSize: 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <div style={{ fontWeight: isUnread ? 700 : 600, color: th.text, fontSize: 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {row.name}
               </div>
-              <div style={{ color: color.textSubtle, fontSize: 12, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 220 }}>
+              <div style={{ color: th.textSubtle, fontSize: 12, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 220 }}>
                 {row.email}
               </div>
             </div>
@@ -62,10 +64,10 @@ export default function MessagesPage() {
       header: 'Subject', accessor: 'subject',
       render: (row) => (
         <div style={{ minWidth: 0 }}>
-          <div style={{ color: color.text, fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 360 }}>
+          <div style={{ color: th.text, fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 360 }}>
             {row.subject || 'Quote request'}
           </div>
-          <div style={{ color: color.textSubtle, fontSize: 13, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 360 }}>
+          <div style={{ color: th.textSubtle, fontSize: 13, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 360 }}>
             {row.message}
           </div>
         </div>
@@ -79,7 +81,7 @@ export default function MessagesPage() {
     },
     {
       header: 'Received', accessor: 'createdAt', width: 160,
-      render: (row) => <span style={{ color: color.textMuted }}>{formatRelative(row.createdAt)}</span>,
+      render: (row) => <span style={{ color: th.textMuted }}>{formatRelative(row.createdAt)}</span>,
     },
   ];
 
@@ -93,9 +95,9 @@ export default function MessagesPage() {
       />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 24 }}>
-        <StatCard label="Total Messages" value={total} hint="All received inquiries" tone="default" />
-        <StatCard label="Unread" value={unread} hint="Pending response" tone="brand" />
-        <StatCard label="Received Today" value={today} hint="In the last 24 hours" tone="info" />
+        <StatCard label="Total Messages" value={total} hint="All received inquiries" tone="default" th={th} />
+        <StatCard label="Unread" value={unread} hint="Pending response" tone="brand" th={th} />
+        <StatCard label="Received Today" value={today} hint="In the last 24 hours" tone="info" th={th} />
       </div>
 
       <DataTable
@@ -136,20 +138,20 @@ export default function MessagesPage() {
       >
         {active && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20, fontFamily: font.family }}>
-            <Card padding={18}>
+            <div style={{ backgroundColor: th.bg, border: `1px solid ${th.border}`, borderRadius: 12, padding: 18 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', rowGap: 10, columnGap: 16, fontSize: 13 }}>
-                <KV label="Name" value={active.name} />
-                <KV label="Email" value={<a href={`mailto:${active.email}`} style={{ color: color.brand600, textDecoration: 'none', fontWeight: 600 }}>{active.email}</a>} />
-                {active.phone && <KV label="Phone" value={<a href={`tel:${active.phone}`} style={{ color: color.brand600, textDecoration: 'none', fontWeight: 600 }}>{active.phone}</a>} />}
-                <KV label="Received" value={new Date(active.createdAt).toLocaleString()} />
+                <KV label="Name" value={active.name} th={th} />
+                <KV label="Email" value={<a href={`mailto:${active.email}`} style={{ color: color.brand500, textDecoration: 'none', fontWeight: 600 }}>{active.email}</a>} th={th} />
+                {active.phone && <KV label="Phone" value={<a href={`tel:${active.phone}`} style={{ color: color.brand500, textDecoration: 'none', fontWeight: 600 }}>{active.phone}</a>} th={th} />}
+                <KV label="Received" value={new Date(active.createdAt).toLocaleString()} th={th} />
               </div>
-            </Card>
+            </div>
 
             <div>
-              <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.04em', color: color.textSubtle, fontWeight: 700, marginBottom: 8 }}>Message</div>
+              <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.04em', color: th.textSubtle, fontWeight: 700, marginBottom: 8 }}>Message</div>
               <div style={{
-                padding: 18, background: color.surfaceAlt, border: `1px solid ${color.border}`,
-                borderRadius: 12, color: color.text, fontSize: 14, lineHeight: 1.65, whiteSpace: 'pre-wrap',
+                padding: 18, background: th.bg, border: `1px solid ${th.border}`,
+                borderRadius: 12, color: th.text, fontSize: 14, lineHeight: 1.65, whiteSpace: 'pre-wrap',
               }}>
                 {active.message}
               </div>
@@ -161,11 +163,11 @@ export default function MessagesPage() {
   );
 }
 
-function StatCard({ label, value, hint, tone = 'default' }) {
+function StatCard({ label, value, hint, tone = 'default', th }) {
   const tones = {
-    default: { fg: color.text, ring: color.border, bg: color.surface },
-    brand:   { fg: color.brand700, ring: color.brand200, bg: color.brand50 },
-    info:    { fg: '#1d4ed8', ring: '#bfdbfe', bg: color.infoBg },
+    default: { fg: th.text, ring: th.border, bg: th.surface },
+    brand:   { fg: color.brand500, ring: color.brand200, bg: 'rgba(16,185,129,0.08)' },
+    info:    { fg: '#3b82f6', ring: '#93c5fd', bg: 'rgba(59,130,246,0.08)' },
   };
   const t = tones[tone] || tones.default;
   return (
@@ -173,18 +175,18 @@ function StatCard({ label, value, hint, tone = 'default' }) {
       background: t.bg, border: `1px solid ${t.ring}`, borderRadius: 12,
       padding: '18px 20px', fontFamily: font.family,
     }}>
-      <div style={{ fontSize: 12, fontWeight: 600, color: color.textSubtle, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
+      <div style={{ fontSize: 12, fontWeight: 600, color: th.textSubtle, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
       <div style={{ fontSize: 28, fontWeight: 800, color: t.fg, letterSpacing: '-0.02em', marginTop: 6 }}>{value}</div>
-      <div style={{ fontSize: 12, color: color.textSubtle, marginTop: 4 }}>{hint}</div>
+      <div style={{ fontSize: 12, color: th.textSubtle, marginTop: 4 }}>{hint}</div>
     </div>
   );
 }
 
-function KV({ label, value }) {
+function KV({ label, value, th }) {
   return (
     <>
-      <div style={{ color: color.textSubtle, fontWeight: 600 }}>{label}</div>
-      <div style={{ color: color.text, fontWeight: 500, wordBreak: 'break-word' }}>{value}</div>
+      <div style={{ color: th.textSubtle, fontWeight: 600 }}>{label}</div>
+      <div style={{ color: th.text, fontWeight: 500, wordBreak: 'break-word' }}>{value}</div>
     </>
   );
 }

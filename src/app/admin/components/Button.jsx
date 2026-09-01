@@ -1,45 +1,43 @@
 "use client"
 import React from 'react';
 import { color, radius, shadow, font } from './theme';
-
-/**
- * <Button variant="primary" size="md" loading icon={...}>Label</Button>
- * variants: primary | secondary | outline | ghost | danger
- * sizes: sm | md | lg
- */
-const VARIANTS = {
-  primary: {
-    background: color.brand600, color: '#fff', border: `1px solid ${color.brand600}`,
-    hoverBg: color.brand700, hoverBorder: color.brand700,
-    boxShadow: '0 1px 2px rgba(16,185,129,0.3)',
-  },
-  secondary: {
-    background: color.surface, color: color.text, border: `1px solid ${color.border}`,
-    hoverBg: color.surfaceAlt, hoverBorder: color.borderStrong,
-    boxShadow: shadow.xs,
-  },
-  outline: {
-    background: 'transparent', color: color.brand700, border: `1px solid ${color.brand200}`,
-    hoverBg: color.brand50, hoverBorder: color.brand500,
-    boxShadow: 'none',
-  },
-  ghost: {
-    background: 'transparent', color: color.textMuted, border: '1px solid transparent',
-    hoverBg: color.divider, hoverBorder: 'transparent',
-    boxShadow: 'none',
-  },
-  danger: {
-    background: color.danger, color: '#fff', border: `1px solid ${color.danger}`,
-    hoverBg: '#b91c1c', hoverBorder: '#b91c1c',
-    boxShadow: '0 1px 2px rgba(220,38,38,0.3)',
-  },
-};
+import { useTheme, themes } from '../context/ThemeContext';
 
 const SIZES = {
   sm: { padding: '6px 12px', fontSize: font.size.sm, height: '30px', iconSize: 14 },
   md: { padding: '8px 14px', fontSize: font.size.md, height: '36px', iconSize: 16 },
   lg: { padding: '10px 18px', fontSize: font.size.base, height: '42px', iconSize: 18 },
 };
+
+function getVariants(th) {
+  return {
+    primary: {
+      background: color.brand600, color: '#fff', border: `1px solid ${color.brand600}`,
+      hoverBg: color.brand700, hoverBorder: color.brand700,
+      boxShadow: '0 1px 2px rgba(16,185,129,0.3)',
+    },
+    secondary: {
+      background: th.surface, color: th.text, border: `1px solid ${th.border}`,
+      hoverBg: th.surfaceHover, hoverBorder: th.borderStrong,
+      boxShadow: shadow.xs,
+    },
+    outline: {
+      background: 'transparent', color: color.brand700, border: `1px solid ${color.brand200}`,
+      hoverBg: color.brand50, hoverBorder: color.brand500,
+      boxShadow: 'none',
+    },
+    ghost: {
+      background: 'transparent', color: th.textMuted, border: '1px solid transparent',
+      hoverBg: th.border, hoverBorder: 'transparent',
+      boxShadow: 'none',
+    },
+    danger: {
+      background: color.danger, color: '#fff', border: `1px solid ${color.danger}`,
+      hoverBg: '#b91c1c', hoverBorder: '#b91c1c',
+      boxShadow: '0 1px 2px rgba(220,38,38,0.3)',
+    },
+  };
+}
 
 export default function Button({
   variant = 'primary',
@@ -55,6 +53,9 @@ export default function Button({
   fullWidth,
   ...rest
 }) {
+  const { theme } = useTheme();
+  const th = themes[theme];
+  const VARIANTS = getVariants(th);
   const v = VARIANTS[variant] || VARIANTS.primary;
   const s = SIZES[size] || SIZES.md;
   const isDisabled = disabled || loading;
@@ -92,6 +93,9 @@ export default function Button({
 }
 
 export function IconButton({ children, label, variant = 'secondary', size = 'md', onClick, style, ...rest }) {
+  const { theme } = useTheme();
+  const th = themes[theme];
+  const VARIANTS = getVariants(th);
   const v = VARIANTS[variant] || VARIANTS.secondary;
   const dim = size === 'sm' ? 30 : size === 'lg' ? 42 : 36;
   return (

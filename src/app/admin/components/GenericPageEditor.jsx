@@ -7,9 +7,12 @@ import Button from './Button';
 import Toast from './Toast';
 import { FormField, Input, Textarea } from './Form';
 import { color, font } from './theme';
+import { useTheme, themes } from '../context/ThemeContext';
 
 export default function GenericPageEditor({ initial }) {
   const router = useRouter();
+  const { theme } = useTheme();
+  const th = themes[theme];
   const [data, setData] = useState(() => ({
     title: initial?.title ?? '',
     content: initial?.content ?? {},
@@ -111,13 +114,13 @@ export default function GenericPageEditor({ initial }) {
 
         <div style={{
           position: 'sticky', bottom: 16, zIndex: 5,
-          background: color.surface, border: `1px solid ${color.border}`,
+          background: th.surface, border: `1px solid ${th.border}`,
           borderRadius: 12, padding: '12px 20px',
           boxShadow: '0 12px 24px -8px rgba(15,23,42,0.15)',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
           fontFamily: font.family,
         }}>
-          <span style={{ fontSize: 13, color: color.textSubtle }}>
+          <span style={{ fontSize: 13, color: th.textSubtle }}>
             Changes apply immediately to the public page once published.
           </span>
           <div style={{ display: 'flex', gap: 10 }}>
@@ -131,13 +134,15 @@ export default function GenericPageEditor({ initial }) {
 }
 
 function SectionHead({ title, description }) {
+  const { theme } = useTheme();
+  const th = themes[theme];
   return (
     <div style={{
-      padding: '20px 28px 18px', borderBottom: `1px solid ${color.divider}`,
+      padding: '20px 28px 18px', borderBottom: `1px solid ${th.border}`,
       fontFamily: font.family,
     }}>
-      <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: color.text, letterSpacing: '-0.01em' }}>{title}</h3>
-      {description && <p style={{ margin: '4px 0 0', fontSize: 13, color: color.textSubtle }}>{description}</p>}
+      <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: th.text, letterSpacing: '-0.01em' }}>{title}</h3>
+      {description && <p style={{ margin: '4px 0 0', fontSize: 13, color: th.textSubtle }}>{description}</p>}
     </div>
   );
 }

@@ -10,6 +10,7 @@ import { FormField, Input, Textarea, FormSection } from './Form';
 import ImageUpload from './ImageUpload';
 import RepeatableList from './RepeatableList';
 import { color, font, radius } from './theme';
+import { useTheme, themes } from '../context/ThemeContext';
 
 const SECTIONS = [
   { key: 'hero',    label: 'Hero',           icon: '✦' },
@@ -29,6 +30,8 @@ const SECTIONS = [
 
 export default function HomePageEditor({ initial }) {
   const router = useRouter();
+  const { theme } = useTheme();
+  const th = themes[theme];
   const [activeSection, setActiveSection] = useState('hero');
   const [content, setContent] = useState(() => initial?.content ?? {});
   const [title, setTitle] = useState(initial?.title ?? 'Home');
@@ -101,10 +104,10 @@ export default function HomePageEditor({ initial }) {
         <div style={{ position: 'sticky', top: 16 }}>
           <Card padding={0}>
             <div style={{
-              padding: '14px 16px', borderBottom: `1px solid ${color.divider}`,
+              padding: '14px 16px', borderBottom: `1px solid ${th.border}`,
               fontFamily: font.family,
             }}>
-              <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: color.textFaint, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Sections</p>
+              <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: th.textFaint, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Sections</p>
             </div>
             <nav style={{ padding: '6px 8px' }}>
               {SECTIONS.map(sec => (
@@ -115,8 +118,8 @@ export default function HomePageEditor({ initial }) {
                     width: '100%', display: 'flex', alignItems: 'center', gap: 10,
                     padding: '8px 10px', border: 'none', borderRadius: radius.md,
                     cursor: 'pointer', fontFamily: font.family,
-                    background: activeSection === sec.key ? color.brand50 : 'transparent',
-                    color: activeSection === sec.key ? color.brand700 : color.textMuted,
+                    background: activeSection === sec.key ? 'rgba(16,185,129,0.1)' : 'transparent',
+                    color: activeSection === sec.key ? color.brand700 : th.textMuted,
                     fontWeight: activeSection === sec.key ? 600 : 400,
                     fontSize: 13, textAlign: 'left', transition: 'background .15s',
                   }}
@@ -137,7 +140,7 @@ export default function HomePageEditor({ initial }) {
           {sectionInfo?.stub ? (
             <Card padding={0}>
               <SectionHead title={sectionInfo.label} description={`Editor for the ${sectionInfo.label} section — coming soon.`} />
-              <div style={{ padding: '40px 28px', textAlign: 'center', color: color.textFaint, fontSize: 13, fontFamily: font.family }}>
+              <div style={{ padding: '40px 28px', textAlign: 'center', color: th.textFaint, fontSize: 13, fontFamily: font.family }}>
                 This section editor is not yet available. Select Hero to get started.
               </div>
             </Card>
@@ -175,13 +178,13 @@ export default function HomePageEditor({ initial }) {
           {/* Sticky save bar */}
           <div style={{
             position: 'sticky', bottom: 16, zIndex: 5,
-            background: color.surface, border: `1px solid ${color.border}`,
+            background: th.surface, border: `1px solid ${th.border}`,
             borderRadius: 12, padding: '12px 20px',
             boxShadow: '0 12px 24px -8px rgba(15,23,42,.15)',
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             fontFamily: font.family,
           }}>
-            <span style={{ fontSize: 13, color: color.textSubtle }}>
+            <span style={{ fontSize: 13, color: th.textSubtle }}>
               Changes are published immediately to the public site.
             </span>
             <Button variant="primary" onClick={handleSave} loading={saving}>Publish Changes</Button>
@@ -888,6 +891,8 @@ function BlogSectionEditor({ blogSection: bs, onChange }) {
 
 /* ── About section editor ── */
 function AboutSectionEditor({ about, onChange }) {
+  const { theme } = useTheme();
+  const th = themes[theme];
   const p = (patch) => onChange(patch);
 
   return (
@@ -952,7 +957,7 @@ function AboutSectionEditor({ about, onChange }) {
             { label: 'Box 2', titleKey: 'title2', iconKey: 'iconUrl2', imgKey: 'imgUrl2' },
           ].map(({ label, titleKey, iconKey, imgKey }) => (
             <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: color.textFaint, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{label}</p>
+              <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: th.textFaint, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{label}</p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 72px 180px', gap: 16, alignItems: 'start' }}>
                 <FormField label="Title">
                   <Input value={about[titleKey] ?? ''} onChange={(e) => p({ [titleKey]: e.target.value })} placeholder="Client Support" />
@@ -1027,13 +1032,15 @@ function AboutSectionEditor({ about, onChange }) {
 }
 
 function SectionHead({ title, description }) {
+  const { theme } = useTheme();
+  const th = themes[theme];
   return (
     <div style={{
-      padding: '20px 28px 18px', borderBottom: `1px solid ${color.divider}`,
+      padding: '20px 28px 18px', borderBottom: `1px solid ${th.border}`,
       fontFamily: font.family,
     }}>
-      <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: color.text, letterSpacing: '-0.01em' }}>{title}</h3>
-      {description && <p style={{ margin: '4px 0 0', fontSize: 13, color: color.textSubtle }}>{description}</p>}
+      <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: th.text, letterSpacing: '-0.01em' }}>{title}</h3>
+      {description && <p style={{ margin: '4px 0 0', fontSize: 13, color: th.textSubtle }}>{description}</p>}
     </div>
   );
 }

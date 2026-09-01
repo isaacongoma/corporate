@@ -3,6 +3,7 @@ import React from 'react';
 import dynamic from 'next/dynamic';
 import 'react-quill-new/dist/quill.snow.css';
 import { color, radius, font } from './theme';
+import { useTheme, themes } from '../context/ThemeContext';
 
 const ReactQuill = dynamic(() => import('react-quill-new'), {
   ssr: false,
@@ -19,6 +20,9 @@ const TOOLBAR = [
 ];
 
 export default function QuillEditor({ value, onChange, placeholder = 'Write your article…', minHeight = 360 }) {
+  const { theme } = useTheme();
+  const th = themes[theme];
+
   return (
     <>
       <div style={{ fontFamily: font.family }}>
@@ -32,13 +36,13 @@ export default function QuillEditor({ value, onChange, placeholder = 'Write your
       </div>
       <style jsx global>{`
         .ql-container, .ql-toolbar {
-          border-color: ${color.border} !important;
+          border-color: ${th.border} !important;
           font-family: ${font.family} !important;
         }
         .ql-toolbar {
           border-top-left-radius: ${radius.md};
           border-top-right-radius: ${radius.md};
-          background: ${color.surfaceAlt};
+          background: ${th.surfaceHover};
           padding: 8px 10px !important;
         }
         .ql-container {
@@ -46,22 +50,23 @@ export default function QuillEditor({ value, onChange, placeholder = 'Write your
           border-bottom-right-radius: ${radius.md};
           font-size: 15px;
           line-height: 1.6;
-          background: ${color.surface};
+          background: ${th.surface};
         }
         .ql-editor {
           min-height: ${minHeight}px;
           padding: 18px 20px !important;
-          color: ${color.text};
+          color: ${th.text};
         }
         .ql-editor.ql-blank::before {
-          color: ${color.textFaint};
+          color: ${th.textFaint};
           font-style: normal;
           left: 20px;
           right: 20px;
         }
-        .ql-snow .ql-stroke { stroke: ${color.textMuted}; }
-        .ql-snow .ql-fill   { fill: ${color.textMuted}; }
-        .ql-snow .ql-picker { color: ${color.textMuted}; }
+        .ql-snow .ql-stroke { stroke: ${th.textMuted}; }
+        .ql-snow .ql-fill   { fill: ${th.textMuted}; }
+        .ql-snow .ql-picker { color: ${th.textMuted}; }
+        .ql-snow .ql-picker-options { background: ${th.surface}; border-color: ${th.border} !important; }
         .ql-snow .ql-toolbar button:hover .ql-stroke,
         .ql-snow .ql-toolbar button.ql-active .ql-stroke,
         .ql-snow .ql-picker-label:hover .ql-stroke,
@@ -82,9 +87,9 @@ export default function QuillEditor({ value, onChange, placeholder = 'Write your
         .ql-snow .ql-picker-item.ql-selected { color: ${color.brand600} !important; }
         .ql-editor blockquote {
           border-left: 3px solid ${color.brand500};
-          background: ${color.brand50};
+          background: rgba(16,185,129,0.06);
           padding: 10px 14px;
-          color: ${color.text};
+          color: ${th.text};
           border-radius: 0 ${radius.md} ${radius.md} 0;
         }
         .ql-editor h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.01em; margin: 18px 0 10px; }
@@ -97,12 +102,14 @@ export default function QuillEditor({ value, onChange, placeholder = 'Write your
 }
 
 function QuillPlaceholder() {
+  const { theme } = useTheme();
+  const th = themes[theme];
   return (
     <div style={{
-      border: `1px solid ${color.border}`, borderRadius: radius.md,
-      minHeight: 400, background: color.surfaceAlt,
+      border: `1px solid ${th.border}`, borderRadius: radius.md,
+      minHeight: 400, background: th.surfaceHover,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      color: color.textSubtle, fontSize: 13,
+      color: th.textSubtle, fontSize: 13,
     }}>Loading editor…</div>
   );
 }

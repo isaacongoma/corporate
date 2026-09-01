@@ -1,6 +1,7 @@
 "use client"
 import React, { useRef, useState, useCallback } from 'react';
 import { color, radius, font } from './theme';
+import { useTheme, themes } from '../context/ThemeContext';
 import Button from './Button';
 
 const ACCEPT = 'image/*';
@@ -10,6 +11,8 @@ const MAX_MB = 10;
  * <ImageUpload value={url} onChange={setUrl} folder="blog" />
  */
 export default function ImageUpload({ value, onChange, folder = 'blog', label = 'Featured image', help, aspect = '16 / 9' }) {
+  const { theme } = useTheme();
+  const th = themes[theme];
   const inputRef = useRef(null);
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -48,7 +51,7 @@ export default function ImageUpload({ value, onChange, folder = 'blog', label = 
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           marginBottom: 8,
         }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: color.text }}>{label}</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: th.text }}>{label}</span>
           {hasImage && !uploading && (
             <button type="button" onClick={() => onChange?.('')} style={{
               background: 'transparent', border: 'none', color: color.danger,
@@ -65,9 +68,9 @@ export default function ImageUpload({ value, onChange, folder = 'blog', label = 
         onClick={() => !uploading && inputRef.current?.click()}
         style={{
           position: 'relative',
-          border: `${dragging ? 2 : 1}px dashed ${dragging ? color.brand500 : hasImage ? color.border : color.borderStrong}`,
+          border: `${dragging ? 2 : 1}px dashed ${dragging ? color.brand500 : hasImage ? th.border : th.borderStrong}`,
           borderRadius: radius.lg,
-          background: dragging ? color.brand50 : hasImage ? color.surface : color.surfaceAlt,
+          background: dragging ? 'rgba(16,185,129,0.08)' : hasImage ? th.surface : th.surfaceHover,
           overflow: 'hidden',
           cursor: uploading ? 'progress' : 'pointer',
           transition: 'background-color .15s, border-color .15s',
@@ -106,10 +109,10 @@ export default function ImageUpload({ value, onChange, folder = 'blog', label = 
             }}>
               <UploadIcon size={22} />
             </div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: color.text }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: th.text }}>
               Drop an image, or <span style={{ color: color.brand600 }}>click to browse</span>
             </div>
-            <div style={{ fontSize: 12, color: color.textSubtle }}>
+            <div style={{ fontSize: 12, color: th.textSubtle }}>
               Any image format · saved as WebP · max {MAX_MB}MB
             </div>
           </div>
@@ -120,8 +123,8 @@ export default function ImageUpload({ value, onChange, folder = 'blog', label = 
             display: 'flex', flexDirection: 'column', alignItems: 'center',
             padding: '24px 16px', gap: 12, width: '80%',
           }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: color.text }}>Uploading… {progress}%</div>
-            <div style={{ width: '100%', height: 6, borderRadius: 999, background: color.divider, overflow: 'hidden' }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: th.text }}>Uploading… {progress}%</div>
+            <div style={{ width: '100%', height: 6, borderRadius: 999, background: th.border, overflow: 'hidden' }}>
               <div style={{
                 width: `${progress}%`, height: '100%', background: color.brand500,
                 transition: 'width .15s',
@@ -139,7 +142,7 @@ export default function ImageUpload({ value, onChange, folder = 'blog', label = 
       {(error || help) && (
         <p style={{
           margin: '8px 0 0', fontSize: 12,
-          color: error ? color.danger : color.textSubtle,
+          color: error ? color.danger : th.textSubtle,
         }}>{error || help}</p>
       )}
     </div>

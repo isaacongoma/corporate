@@ -8,9 +8,12 @@ import Button, { IconButton } from '../components/Button';
 import Badge from '../components/Badge';
 import Toast from '../components/Toast';
 import { color } from '../components/theme';
+import { useTheme, themes } from '../context/ThemeContext';
 
 export default function BlogAdmin() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const th = themes[theme];
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
@@ -40,8 +43,8 @@ export default function BlogAdmin() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
             width: 36, height: 36, borderRadius: 8, flexShrink: 0,
-            background: row.featuredImage ? `url(${row.featuredImage}) center/cover` : color.brand50,
-            color: color.brand600, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: row.featuredImage ? `url(${row.featuredImage}) center/cover` : 'rgba(16,185,129,0.1)',
+            color: color.brand500, display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             {!row.featuredImage && (
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -50,10 +53,10 @@ export default function BlogAdmin() {
             )}
           </div>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 600, color: color.text, fontSize: 14, lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 320 }}>
+            <div style={{ fontWeight: 600, color: th.text, fontSize: 14, lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 320 }}>
               {row.title}
             </div>
-            <div style={{ color: color.textFaint, fontSize: 12, marginTop: 2 }}>/{row.slug}</div>
+            <div style={{ color: th.textFaint, fontSize: 12, marginTop: 2 }}>/{row.slug}</div>
           </div>
         </div>
       ),
@@ -66,11 +69,11 @@ export default function BlogAdmin() {
     },
     {
       header: 'Author', accessor: 'author', width: 160,
-      render: () => <span style={{ color: color.textMuted, fontWeight: 500 }}>Super Admin</span>,
+      render: () => <span style={{ color: th.textMuted, fontWeight: 500 }}>Super Admin</span>,
     },
     {
       header: 'Published', accessor: 'createdAt', width: 150,
-      render: (row) => <span style={{ color: color.textMuted }}>{new Date(row.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>,
+      render: (row) => <span style={{ color: th.textMuted }}>{new Date(row.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>,
     },
   ];
 

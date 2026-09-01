@@ -8,8 +8,11 @@ import Toast from '../components/Toast';
 import { FormField, FormRow, Input } from '../components/Form';
 import { CardSkeleton } from '../components/Skeleton';
 import { color, font } from '../components/theme';
+import { useTheme, themes } from '../context/ThemeContext';
 
 export default function ProfilePage() {
+  const { theme } = useTheme();
+  const th = themes[theme];
   const [profile, setProfile] = useState(null);
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -71,7 +74,7 @@ export default function ProfilePage() {
         <Card padding={0}>
           <div style={{
             display: 'flex', alignItems: 'center', gap: 20, padding: 28,
-            borderBottom: `1px solid ${color.divider}`, fontFamily: font.family,
+            borderBottom: `1px solid ${th.border}`, fontFamily: font.family,
           }}>
             <div style={{
               width: 72, height: 72, borderRadius: '50%',
@@ -81,12 +84,12 @@ export default function ProfilePage() {
               boxShadow: '0 6px 14px -4px rgba(16,185,129,0.4)', flexShrink: 0,
             }}>{initial}</div>
             <div style={{ minWidth: 0, flex: 1 }}>
-              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: color.text, letterSpacing: '-0.01em' }}>
+              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: th.text, letterSpacing: '-0.01em' }}>
                 {profile.name || 'Admin User'}
               </h2>
               <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 <Badge variant="brand">Super Administrator</Badge>
-                {profile.email && <span style={{ fontSize: 13, color: color.textSubtle }}>{profile.email}</span>}
+                {profile.email && <span style={{ fontSize: 13, color: th.textSubtle }}>{profile.email}</span>}
               </div>
             </div>
           </div>
@@ -94,13 +97,14 @@ export default function ProfilePage() {
           <Section
             title="Personal Information"
             description="Shown on your profile and in account-related communications."
+            th={th}
           >
             <FormRow columns={2}>
               <FormField label="Full Name" required>
                 <Input value={profile.name} onChange={e => update({ name: e.target.value })} />
               </FormField>
               <FormField label="Email Address" help="Email cannot be changed.">
-                <Input type="email" value={profile.email} disabled style={{ background: color.surfaceAlt, color: color.textFaint, cursor: 'not-allowed' }} />
+                <Input type="email" value={profile.email} disabled style={{ background: th.bg, color: th.textFaint, cursor: 'not-allowed' }} />
               </FormField>
               <FormField label="Phone Number">
                 <Input value={profile.phone} onChange={e => update({ phone: e.target.value })} placeholder="+254 700 000 000" />
@@ -114,6 +118,7 @@ export default function ProfilePage() {
           <Section
             title="Security"
             description="Leave blank to keep your current password. Use a strong, unique password."
+            th={th}
           >
             <FormField label="New Password" help="Minimum 8 characters with a mix of letters, numbers and symbols.">
               <Input
@@ -136,12 +141,12 @@ export default function ProfilePage() {
   );
 }
 
-function Section({ title, description, children }) {
+function Section({ title, description, children, th }) {
   return (
-    <div style={{ padding: 28, borderBottom: `1px solid ${color.divider}`, fontFamily: font.family }}>
+    <div style={{ padding: 28, borderBottom: `1px solid ${th.border}`, fontFamily: font.family }}>
       <div style={{ marginBottom: 20 }}>
-        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: color.text, letterSpacing: '-0.01em' }}>{title}</h3>
-        {description && <p style={{ margin: '6px 0 0', fontSize: 13, color: color.textSubtle, lineHeight: 1.5 }}>{description}</p>}
+        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: th.text, letterSpacing: '-0.01em' }}>{title}</h3>
+        {description && <p style={{ margin: '6px 0 0', fontSize: 13, color: th.textSubtle, lineHeight: 1.5 }}>{description}</p>}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>{children}</div>
     </div>

@@ -43,7 +43,7 @@ model Page {
   id        Int      @id @default(autoincrement())
   slug      String   @unique
   title     String
-  content   Json     
+  content   Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -52,8 +52,8 @@ model Service {
   id          Int      @id @default(autoincrement())
   title       String
   description String   @db.Text
-  icon        String?  
-  image       String?   
+  icon        String?
+  image       String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -77,5 +77,69 @@ model ContactMessage {
   phone     String?
   subject   String?
   message   String   @db.Text
+  createdAt DateTime @default(now())
+}
+
+// ─── SalesOps Models ───────────────────────────────────────────────
+
+model SalesCustomer {
+  id          Int         @id @default(autoincrement())
+  name        String
+  industry    String?
+  type        String      @default("Starter")
+  location    String?
+  email       String?
+  phone       String?
+  revenue     Float       @default(0)
+  healthScore Int         @default(50)
+  initials    String?
+  color       String?
+  lastContact String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  deals       SalesDeal[]
+}
+
+model SalesDeal {
+  id         Int            @id @default(autoincrement())
+  company    String
+  contact    String?
+  email      String?
+  value      Float          @default(0)
+  stage      String         @default("Lead")
+  status     String         @default("Pending")
+  rep        String?
+  closeDate  DateTime?
+  notes      String?        @db.Text
+  customerId Int?
+  customer   SalesCustomer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+}
+
+model SalesTeamMember {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String?
+  role      String?
+  initials  String?
+  color     String?
+  territory String?
+  deals     Int       @default(0)
+  revenue   Float     @default(0)
+  growth    String?
+  joinDate  DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model SalesActivity {
+  id        Int      @id @default(autoincrement())
+  type      String
+  title     String
+  body      String?  @db.Text
+  dealId    Int?
+  customerId Int?
+  rep       String?
   createdAt DateTime @default(now())
 }

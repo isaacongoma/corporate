@@ -5,9 +5,11 @@ import PageHeader from '../components/PageHeader';
 import DataTable from '../components/DataTable';
 import Button, { IconButton } from '../components/Button';
 import Badge from '../components/Badge';
-import { color } from '../components/theme';
+import { useTheme, themes } from '../context/ThemeContext';
 
 export default function PagesList() {
+  const { theme } = useTheme();
+  const th = themes[theme];
   const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -22,8 +24,8 @@ export default function PagesList() {
       header: 'Page', accessor: 'title',
       render: (row) => (
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontWeight: 600, color: color.text, fontSize: 14 }}>{row.title}</div>
-          <div style={{ color: color.textFaint, fontSize: 12, marginTop: 2, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}>/{row.slug}</div>
+          <div style={{ fontWeight: 600, color: th.text, fontSize: 14 }}>{row.title}</div>
+          <div style={{ color: th.textFaint, fontSize: 12, marginTop: 2, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}>/{row.slug}</div>
         </div>
       ),
     },
@@ -34,7 +36,7 @@ export default function PagesList() {
     {
       header: 'Last Modified', accessor: 'updatedAt', width: 180,
       render: (row) => (
-        <span style={{ color: color.textMuted }}>
+        <span style={{ color: th.textMuted }}>
           {new Date(row.updatedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
         </span>
       ),

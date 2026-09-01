@@ -1,22 +1,22 @@
+"use client"
 import React from 'react';
 import { color, radius, font } from './theme';
-
-/**
- * <Badge variant="success">Active</Badge>
- * variants: default | success | warning | danger | info | brand
- * style: soft (default) | solid | outline
- */
-const VARIANTS = {
-  default: { soft: { bg: color.divider,   fg: color.textMuted, border: color.border } },
-  success: { soft: { bg: color.successBg, fg: '#15803d',        border: '#bbf7d0' } },
-  warning: { soft: { bg: color.warningBg, fg: '#b45309',        border: '#fde68a' } },
-  danger:  { soft: { bg: color.dangerBg,  fg: '#b91c1c',        border: '#fecaca' } },
-  info:    { soft: { bg: color.infoBg,    fg: '#1d4ed8',        border: '#bfdbfe' } },
-  brand:   { soft: { bg: color.brand50,   fg: color.brand700,   border: color.brand200 } },
-};
+import { useTheme, themes } from '../context/ThemeContext';
 
 export default function Badge({ children, variant = 'default', dot = false, style }) {
-  const v = (VARIANTS[variant] || VARIANTS.default).soft;
+  const { theme } = useTheme();
+  const th = themes[theme];
+
+  const VARIANTS = {
+    default: { bg: th.surfaceHover, fg: th.textMuted, border: th.border },
+    success: { bg: color.successBg, fg: '#15803d', border: '#bbf7d0' },
+    warning: { bg: color.warningBg, fg: '#b45309', border: '#fde68a' },
+    danger:  { bg: color.dangerBg,  fg: '#b91c1c', border: '#fecaca' },
+    info:    { bg: color.infoBg,    fg: '#1d4ed8', border: '#bfdbfe' },
+    brand:   { bg: color.brand50,   fg: color.brand700, border: color.brand200 },
+  };
+
+  const v = VARIANTS[variant] || VARIANTS.default;
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 6,

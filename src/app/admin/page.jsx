@@ -1,155 +1,241 @@
-import React from 'react';
-import Link from 'next/link';
-import prisma from '@/lib/prisma';
-import PageHeader from './components/PageHeader';
-import Card from './components/Card';
-import Badge from './components/Badge';
-import StatTile from './components/StatTile';
-import { color, font } from './components/theme';
+"use client"
+import React, { useState, useEffect } from 'react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useTheme, themes } from './context/ThemeContext';
 
-export default async function AdminDashboard() {
-  const [blogsCount, messagesCount, servicesCount, pagesCount, recentMessages, recentBlogs] = await Promise.all([
-    prisma.blog.count(),
-    prisma.contactMessage.count(),
-    prisma.service.count(),
-    prisma.page.count(),
-    prisma.contactMessage.findMany({ orderBy: { createdAt: 'desc' }, take: 5 }),
-    prisma.blog.findMany({ orderBy: { createdAt: 'desc' }, take: 5 }),
-  ]);
+// Static monthly revenue chart data (can be extended to be dynamic from DB later)
+const revenueData = [
+  { month: 'Jan', revenue: 150000, target: 120000 },
+  { month: 'Feb', revenue: 180000, target: 140000 },
+  { month: 'Mar', revenue: 165000, target: 155000 },
+  { month: 'Apr', revenue: 200000, target: 170000 },
+  { month: 'May', revenue: 240000, target: 190000 },
+  { month: 'Jun', revenue: 290000, target: 210000 },
+  { month: 'Jul', revenue: 330000, target: 235000 },
+  { month: 'Aug', revenue: 355000, target: 255000 },
+  { month: 'Sep', revenue: 390000, target: 278000 },
+  { month: 'Oct', revenue: 428000, target: 308000 },
+  { month: 'Nov', revenue: 475000, target: 342000 },
+  { month: 'Dec', revenue: 548000, target: 382000 },
+];
 
-  const stats = [
-    { label: 'Contact Messages',  value: messagesCount,  hint: 'Inquiries received',         tone: 'brand',   href: '/admin/messages',  icon: <InboxIcon /> },
-    { label: 'Blog Articles',     value: blogsCount,     hint: 'Published posts',            tone: 'info',    href: '/admin/blog',      icon: <ArticleIcon /> },
-    { label: 'CMS Pages',         value: pagesCount,     hint: 'Editable public pages',      tone: 'default', href: '/admin/pages',     icon: <LayoutIcon /> },
-    { label: 'Active Services',   value: servicesCount,  hint: 'Services on the site',       tone: 'success', href: '/admin/settings',  icon: <ShieldIcon /> },
-  ];
-
-  return (
-    <>
-      <PageHeader
-        title="Dashboard"
-        subtitle="An overview of your public site, content and recent activity."
-        meta={<><span>Data refreshed · just now</span><span style={{ color: color.textFaint }}>•</span><span>Prime Watch Security</span></>}
-      />
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 24 }}>
-        {stats.map(s => <StatTile key={s.label} {...s} />)}
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 20 }}>
-        <Card padding={0}>
-          <PanelHeader title="Recent Messages" linkLabel="View all" href="/admin/messages" />
-          <ListEmptyOr items={recentMessages} empty="No messages yet.">
-            {recentMessages.map(m => (
-              <li key={m.id} style={listItem}>
-                <Avatar name={m.name} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', minWidth: 0 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: color.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.name}</span>
-                    <Badge variant="brand">New</Badge>
-                  </div>
-                  <div style={{ fontSize: 12, color: color.textSubtle, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 2 }}>
-                    {m.subject || m.message?.slice(0, 60)}
-                  </div>
-                </div>
-                <span style={{ fontSize: 12, color: color.textFaint, flexShrink: 0 }}>
-                  {formatRelative(m.createdAt)}
-                </span>
-              </li>
-            ))}
-          </ListEmptyOr>
-        </Card>
-
-        <Card padding={0}>
-          <PanelHeader title="Latest Blog Posts" linkLabel="Manage" href="/admin/blog" />
-          <ListEmptyOr items={recentBlogs} empty="No posts published yet.">
-            {recentBlogs.map(b => (
-              <li key={b.id} style={listItem}>
-                <div style={{
-                  width: 36, height: 36, borderRadius: 8, flexShrink: 0,
-                  background: b.featuredImage ? `url(${b.featuredImage}) center/cover` : color.brand50,
-                  color: color.brand600, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  {!b.featuredImage && <ArticleIcon size={16} />}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: color.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.title}</div>
-                  <div style={{ fontSize: 12, color: color.textSubtle, marginTop: 2 }}>/{b.slug}</div>
-                </div>
-                {b.published
-                  ? <Badge variant="success">Published</Badge>
-                  : <Badge variant="default">Draft</Badge>}
-              </li>
-            ))}
-          </ListEmptyOr>
-        </Card>
-      </div>
-    </>
-  );
-}
-
-const listItem = {
-  display: 'flex', alignItems: 'center', gap: 12,
-  padding: '12px 20px', borderBottom: `1px solid ${color.divider}`,
-  fontFamily: font.family, listStyle: 'none',
+const fmt = (n) => {
+  if (n >= 1000000) return `$${(n / 1000000).toFixed(1)}M`;
+  if (n >= 1000) return `$${(n / 1000).toFixed(0)}K`;
+  return `$${n}`;
 };
 
-function PanelHeader({ title, linkLabel, href }) {
+function StatCard({ label, value, change, positive, icon, th }) {
   return (
-    <header style={{
-      padding: '16px 20px', borderBottom: `1px solid ${color.divider}`,
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      fontFamily: font.family,
-    }}>
-      <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: color.text }}>{title}</h3>
-      {href && (
-        <Link href={href} style={{
-          fontSize: 13, color: color.brand700, textDecoration: 'none',
-          fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4,
-        }}>
-          {linkLabel}
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="m9 18 6-6-6-6" /></svg>
-        </Link>
-      )}
-    </header>
-  );
-}
-
-function ListEmptyOr({ items, empty, children }) {
-  if (!items || items.length === 0) {
-    return (
-      <div style={{ padding: '32px 20px', textAlign: 'center', color: color.textSubtle, fontSize: 13, fontFamily: font.family }}>
-        {empty}
+    <div style={{ backgroundColor: th.surface, border: `1px solid ${th.border}`, borderRadius: '12px', padding: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+        <span style={{ fontSize: '13px', color: th.textSubtle, fontWeight: '500' }}>{label}</span>
+        <div style={{ color: th.textFaint }}>{icon}</div>
       </div>
-    );
-  }
-  return <ul style={{ margin: 0, padding: 0 }}>{children}</ul>;
-}
-
-function Avatar({ name }) {
-  const initials = (name || '?').split(' ').map(s => s[0]).join('').slice(0, 2).toUpperCase();
-  return (
-    <div style={{
-      width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
-      background: `linear-gradient(135deg, ${color.brand500}, ${color.brand700})`,
-      color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontWeight: 700, fontSize: 13,
-    }}>{initials}</div>
+      <div style={{ fontSize: '26px', fontWeight: '700', color: th.text, marginBottom: '8px' }}>{value}</div>
+      {change && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: '600', color: positive ? th.statUp : th.statDown }}>
+          <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            {positive
+              ? <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-9 9-4-4-6 6"/>
+              : <path strokeLinecap="round" strokeLinejoin="round" d="M13 17h8m0 0v-8m0 8l-9-9-4 4-6-6"/>}
+          </svg>
+          {change}
+        </div>
+      )}
+    </div>
   );
 }
 
-function formatRelative(iso) {
-  if (!iso) return '';
-  const d = new Date(iso); const now = new Date();
-  const diff = Math.floor((now - d) / 1000);
-  if (diff < 60) return 'Just now';
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+function StatusBadge({ status, th }) {
+  const map = {
+    Won: { bg: th.wonBg, text: th.wonText, icon: '✓' },
+    Pending: { bg: th.pendingBg, text: th.pendingText, icon: '⊙' },
+    Lost: { bg: th.lostBg, text: th.lostText, icon: '✕' },
+  };
+  const s = map[status] || { bg: th.surfaceHover, text: th.textSubtle, icon: '' };
+  return (
+    <span style={{ padding: '3px 9px', borderRadius: '999px', fontSize: '11px', fontWeight: '600', backgroundColor: s.bg, color: s.text }}>
+      {s.icon} {status}
+    </span>
+  );
 }
 
-function InboxIcon()  { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M4 13h4l2 3h4l2-3h4M4 13l2-7h12l2 7M4 13v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5" /></svg>; }
-function ArticleIcon({ size = 16 }) { return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M4 19.5v-15A1.5 1.5 0 0 1 5.5 3H19a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6.5A1.5 1.5 0 0 1 5 19.5Zm0 0A1.5 1.5 0 0 1 6.5 18H20M9 7h6M9 11h6M9 15h4" /></svg>; }
-function LayoutIcon() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M3 9h18M9 21V9M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" /></svg>; }
-function ShieldIcon() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" /></svg>; }
+const ChartTooltip = ({ active, payload, label, th }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div style={{ backgroundColor: th.chartTooltipBg, border: `1px solid ${th.chartTooltipBorder}`, borderRadius: '8px', padding: '10px 14px', fontSize: '12px' }}>
+      <div style={{ fontWeight: '600', color: th.text, marginBottom: '6px' }}>{label}</div>
+      {payload.map(p => (
+        <div key={p.name} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: p.color, display: 'inline-block' }} />
+          <span style={{ color: th.textMuted }}>{p.name === 'revenue' ? 'Revenue' : 'Target'}:</span>
+          <span style={{ fontWeight: '600', color: th.text }}>{fmt(p.value)}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default function OverviewPage() {
+  const { theme } = useTheme();
+  const th = themes[theme];
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/sales/overview')
+      .then(r => r.json())
+      .then(d => { setData(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const kpis = data?.kpis || {};
+  const pipelineStages = data?.pipelineStages || [];
+  const recentDeals = data?.recentDeals || [];
+  const topPerformers = data?.topPerformers || [];
+  const totalPipelineValue = data?.totalPipelineValue || 0;
+  const memberColors = ['#10b981', '#06b6d4', '#8b5cf6', '#f59e0b', '#ec4899'];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* KPI Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+        <StatCard th={th} label="Total Revenue" value={loading ? '—' : fmt(kpis.totalRevenue || 0)} change="+12.5%" positive icon={<svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>} />
+        <StatCard th={th} label="Conversion Rate" value={loading ? '—' : `${kpis.conversionRate || 0}%`} change="+3.2%" positive icon={<svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>} />
+        <StatCard th={th} label="Active Deals" value={loading ? '—' : String(kpis.activeDeals || 0)} change="-5" positive={false} icon={<svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path strokeLinecap="round" d="M12 8v4l3 3"/></svg>} />
+        <StatCard th={th} label="New Leads" value={loading ? '—' : String(kpis.newLeads || 0)} change="+18.3%" positive icon={<svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>} />
+      </div>
+
+      {/* Charts row */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '16px' }}>
+        {/* Revenue Trend */}
+        <div style={{ backgroundColor: th.surface, border: `1px solid ${th.border}`, borderRadius: '12px', padding: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+            <div>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: th.text }}>Revenue Trend</div>
+              <div style={{ fontSize: '12px', color: th.textSubtle, marginTop: '2px' }}>Monthly performance vs target</div>
+            </div>
+            <div style={{ display: 'flex', gap: '16px', fontSize: '12px', fontWeight: '500', color: th.textSubtle }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#06b6d4', display: 'inline-block' }} />Revenue</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />Target</span>
+            </div>
+          </div>
+          <div style={{ height: '220px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={revenueData} margin={{ top: 5, right: 5, left: -10, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="gRev" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="gTgt" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke={th.chartGrid} vertical={false} />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: th.chartText }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: th.chartText }} axisLine={false} tickLine={false} tickFormatter={v => `$${v / 1000}k`} />
+                <Tooltip content={<ChartTooltip th={th} />} />
+                <Area type="monotone" dataKey="revenue" stroke="#06b6d4" strokeWidth={2.5} fill="url(#gRev)" dot={false} />
+                <Area type="monotone" dataKey="target" stroke="#10b981" strokeWidth={2} fill="url(#gTgt)" dot={false} strokeDasharray="5 3" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Pipeline Stages */}
+        <div style={{ backgroundColor: th.surface, border: `1px solid ${th.border}`, borderRadius: '12px', padding: '20px' }}>
+          <div style={{ fontSize: '15px', fontWeight: '700', color: th.text, marginBottom: '2px' }}>Pipeline Stages</div>
+          <div style={{ fontSize: '12px', color: th.textSubtle, marginBottom: '20px' }}>Distribution by stage</div>
+          {loading
+            ? <div style={{ color: th.textFaint, fontSize: '13px' }}>Loading…</div>
+            : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {pipelineStages.map(s => (
+                  <div key={s.label}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: '600', color: th.text }}>{s.label}</span>
+                      <div style={{ display: 'flex', gap: '10px', fontSize: '12px' }}>
+                        <span style={{ color: th.textSubtle }}>{s.count}</span>
+                        <span style={{ fontWeight: '700', color: th.text }}>{s.pct}%</span>
+                      </div>
+                    </div>
+                    <div style={{ height: '6px', backgroundColor: th.border, borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${s.pct}%`, backgroundColor: s.color, borderRadius: '3px' }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: `1px solid ${th.border}`, display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '13px', color: th.textSubtle }}>Total Pipeline Value</span>
+            <span style={{ fontSize: '15px', fontWeight: '700', color: th.text }}>{fmt(totalPipelineValue)}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom row */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        {/* Recent Deals */}
+        <div style={{ backgroundColor: th.surface, border: `1px solid ${th.border}`, borderRadius: '12px', overflow: 'hidden' }}>
+          <div style={{ padding: '16px 20px', borderBottom: `1px solid ${th.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: th.text }}>Recent Deals</div>
+              <div style={{ fontSize: '12px', color: th.textSubtle }}>Latest activity</div>
+            </div>
+            <a href="/admin/deals" style={{ fontSize: '12px', fontWeight: '600', color: th.accent, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              View all
+              <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+            </a>
+          </div>
+          {loading
+            ? <div style={{ padding: '20px', color: th.textFaint, fontSize: '13px' }}>Loading…</div>
+            : recentDeals.map((d, i) => (
+              <div key={i} className="so-row-hover" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 20px', borderBottom: i < recentDeals.length - 1 ? `1px solid ${th.border}` : 'none' }}>
+                <div style={{ width: '34px', height: '34px', borderRadius: '8px', backgroundColor: th.surfaceHover, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '700', color: th.textMuted, flexShrink: 0 }}>{d.initial}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: '13px', fontWeight: '600', color: th.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.company}</div>
+                  <div style={{ fontSize: '11px', color: th.textSubtle }}>{d.rep} · {d.ago}</div>
+                </div>
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <div style={{ fontSize: '13px', fontWeight: '700', color: th.text }}>{fmt(d.value)}</div>
+                  <div style={{ marginTop: '2px' }}><StatusBadge status={d.status} th={th} /></div>
+                </div>
+              </div>
+            ))}
+        </div>
+
+        {/* Top Performers */}
+        <div style={{ backgroundColor: th.surface, border: `1px solid ${th.border}`, borderRadius: '12px', overflow: 'hidden' }}>
+          <div style={{ padding: '16px 20px', borderBottom: `1px solid ${th.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: th.text }}>Top Performers</div>
+              <div style={{ fontSize: '12px', color: th.textSubtle }}>{"This month's leaders"}</div>
+            </div>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#f59e0b"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          </div>
+          {loading
+            ? <div style={{ padding: '20px', color: th.textFaint, fontSize: '13px' }}>Loading…</div>
+            : topPerformers.map((p, i) => (
+              <div key={p.id} className="so-row-hover" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 20px', borderBottom: i < topPerformers.length - 1 ? `1px solid ${th.border}` : 'none' }}>
+                <div style={{ position: 'relative', flexShrink: 0 }}>
+                  <div style={{ width: '34px', height: '34px', borderRadius: '50%', backgroundColor: p.color || memberColors[i] || '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '700', color: '#fff' }}>{p.initials}</div>
+                  <div style={{ position: 'absolute', top: '-4px', left: '-4px', width: '16px', height: '16px', borderRadius: '50%', backgroundColor: '#f59e0b', color: '#fff', fontSize: '9px', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</div>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: '13px', fontWeight: '600', color: th.text }}>{p.name}</div>
+                  <div style={{ fontSize: '11px', color: th.textSubtle }}>{p.deals} deals closed</div>
+                </div>
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <div style={{ fontSize: '13px', fontWeight: '700', color: th.text }}>{fmt(p.revenue)}</div>
+                  <div style={{ fontSize: '11px', fontWeight: '600', color: th.statUp }}>{p.growth}</div>
+                </div>
+              </div>
+            ))}
+        </div>
+      </div>
+    </div>
+  );
+}

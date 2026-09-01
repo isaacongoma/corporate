@@ -1,23 +1,9 @@
 "use client"
 import React, { useMemo, useState } from 'react';
 import { color, font, radius, shadow } from './theme';
-import { Input, Select } from './Form';
+import { useTheme, themes } from '../context/ThemeContext';
+import { Input } from './Form';
 
-/**
- * <DataTable
- *    columns={[{ header, accessor, render, align, width }]}
- *    data={rows}
- *    loading
- *    rowKey="id"
- *    searchable
- *    searchPlaceholder
- *    filters={<>...</>}
- *    pagination={{ pageSize: 10 }}
- *    empty={{ title, description, action }}
- *    onRowClick={row => ...}
- *    rowActions={row => <...>}
- * />
- */
 export default function DataTable({
   columns = [],
   data = [],
@@ -35,6 +21,8 @@ export default function DataTable({
   onSelectionChange,
   stickyHeader = false,
 }) {
+  const { theme } = useTheme();
+  const th = themes[theme];
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState(new Set());
@@ -73,13 +61,25 @@ export default function DataTable({
     onSelectionChange?.(Array.from(next));
   };
   const allVisibleSelected = visible.length > 0 && visible.every(r => selected.has(r[rowKey]));
-
   const showToolbar = searchable || filters || toolbar;
+
+  const thStyle = (width) => ({
+    padding: '8px 16px',
+    fontSize: font.size.sm, fontWeight: font.weight.semibold,
+    color: th.textSubtle, textTransform: 'uppercase', letterSpacing: '0.04em',
+    whiteSpace: 'nowrap', ...(width ? { width } : {}),
+  });
+
+  const tdStyle = {
+    padding: '8px 16px',
+    fontSize: font.size.base, color: th.textMuted,
+    verticalAlign: 'middle',
+  };
 
   return (
     <div style={{
-      background: color.surface,
-      border: `1px solid ${color.border}`,
+      background: th.surface,
+      border: `1px solid ${th.border}`,
       borderRadius: radius.lg,
       boxShadow: shadow.xs,
       overflow: 'hidden',
@@ -87,13 +87,13 @@ export default function DataTable({
     }}>
       {showToolbar && (
         <div style={{
-          padding: '14px 18px', borderBottom: `1px solid ${color.divider}`,
+          padding: '14px 18px', borderBottom: `1px solid ${th.border}`,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          gap: 12, flexWrap: 'wrap', background: color.surface,
+          gap: 12, flexWrap: 'wrap', background: th.surface,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             {selectable && selected.size > 0 ? (
-              <span style={{ fontSize: font.size.md, color: color.textMuted, fontWeight: font.weight.semibold }}>
+              <span style={{ fontSize: font.size.md, color: th.textMuted, fontWeight: font.weight.semibold }}>
                 {selected.size} selected
               </span>
             ) : filters}
@@ -118,7 +118,7 @@ export default function DataTable({
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
           <thead>
-            <tr style={{ background: color.surfaceAlt, borderBottom: `1px solid ${color.border}`, ...(stickyHeader ? { position: 'sticky', top: 0 } : {}) }}>
+            <tr style={{ background: th.bg, borderBottom: `1px solid ${th.border}`, ...(stickyHeader ? { position: 'sticky', top: 0 } : {}) }}>
               {selectable && (
                 <th style={thStyle(48)}>
                   <input type="checkbox" checked={allVisibleSelected} onChange={toggleAll}
@@ -126,10 +126,7 @@ export default function DataTable({
                 </th>
               )}
               {columns.map((c, i) => (
-                <th key={i} style={{
-                  ...thStyle(c.width),
-                  textAlign: c.align || 'left',
-                }}>{c.header}</th>
+                <th key={i} style={{ ...thStyle(c.width), textAlign: c.align || 'left' }}>{c.header}</th>
               ))}
               {rowActions && <th style={{ ...thStyle(56), textAlign: 'right' }}>{''}</th>}
             </tr>
@@ -137,16 +134,16 @@ export default function DataTable({
           <tbody>
             {loading ? (
               [0, 1, 2, 3, 4].map(i => (
-                <tr key={i} style={{ borderBottom: `1px solid ${color.divider}` }}>
-                  {selectable && <td style={tdStyle}><SkeletonCell width={16} /></td>}
-                  {columns.map((c, j) => <td key={j} style={tdStyle}><SkeletonCell /></td>)}
-                  {rowActions && <td style={tdStyle}><SkeletonCell width={24} /></td>}
+                <tr key={i} style={{ borderBottom: `1px solid ${th.border}` }}>
+                  {selectable && <td style={tdStyle}><SkeletonCell th={th} width={16} /></td>}
+                  {columns.map((c, j) => <td key={j} style={tdStyle}><SkeletonCell th={th} /></td>)}
+                  {rowActions && <td style={tdStyle}><SkeletonCell th={th} width={24} /></td>}
                 </tr>
               ))
             ) : visible.length === 0 ? (
               <tr>
                 <td colSpan={columns.length + (selectable ? 1 : 0) + (rowActions ? 1 : 0)} style={{ padding: 0 }}>
-                  <EmptyState {...(empty || {})} hasQuery={!!query} />
+                  <EmptyState th={th} {...(empty || {})} hasQuery={!!query} />
                 </td>
               </tr>
             ) : (
@@ -158,13 +155,13 @@ export default function DataTable({
                     key={id}
                     onClick={() => onRowClick?.(row)}
                     style={{
-                      borderBottom: `1px solid ${color.divider}`,
-                      background: isSelected ? color.brand50 : color.surface,
+                      borderBottom: `1px solid ${th.border}`,
+                      background: isSelected ? 'rgba(16,185,129,0.08)' : th.surface,
                       cursor: onRowClick ? 'pointer' : 'default',
                       transition: 'background-color .12s',
                     }}
-                    onMouseOver={e => e.currentTarget.style.background = isSelected ? color.brand50 : color.surfaceAlt}
-                    onMouseOut={e => e.currentTarget.style.background = isSelected ? color.brand50 : color.surface}
+                    onMouseOver={e => e.currentTarget.style.background = isSelected ? 'rgba(16,185,129,0.08)' : th.surfaceHover}
+                    onMouseOut={e => e.currentTarget.style.background = isSelected ? 'rgba(16,185,129,0.08)' : th.surface}
                   >
                     {selectable && (
                       <td style={tdStyle} onClick={e => e.stopPropagation()}>
@@ -194,6 +191,7 @@ export default function DataTable({
 
       {pagination && !loading && filtered.length > 0 && (
         <Pagination
+          th={th}
           start={start} end={end} total={filtered.length}
           page={currentPage} totalPages={totalPages}
           onChange={setPage}
@@ -203,41 +201,26 @@ export default function DataTable({
   );
 }
 
-function thStyle(width) {
-  return {
-    padding: '8px 16px',
-    fontSize: font.size.sm, fontWeight: font.weight.semibold,
-    color: color.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em',
-    whiteSpace: 'nowrap', ...(width ? { width } : {}),
-  };
-}
-
-const tdStyle = {
-  padding: '8px 16px',
-  fontSize: font.size.base, color: color.textMuted,
-  verticalAlign: 'middle',
-};
-
-function Pagination({ start, end, total, page, totalPages, onChange }) {
+function Pagination({ th, start, end, total, page, totalPages, onChange }) {
   return (
     <div style={{
-      padding: '12px 18px', borderTop: `1px solid ${color.divider}`,
+      padding: '12px 18px', borderTop: `1px solid ${th.border}`,
       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      background: color.surface, fontSize: font.size.md, color: color.textSubtle,
+      background: th.surface, fontSize: font.size.md, color: th.textSubtle,
       gap: 12, flexWrap: 'wrap',
     }}>
       <span>
-        Showing <strong style={{ color: color.text }}>{start}–{end}</strong> of <strong style={{ color: color.text }}>{total}</strong>
+        Showing <strong style={{ color: th.text }}>{start}–{end}</strong> of <strong style={{ color: th.text }}>{total}</strong>
       </span>
       <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-        <PageBtn disabled={page <= 1} onClick={() => onChange(page - 1)}>
+        <PageBtn th={th} disabled={page <= 1} onClick={() => onChange(page - 1)}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="m15 18-6-6 6-6" /></svg>
           Prev
         </PageBtn>
-        <span style={{ padding: '0 10px', fontSize: font.size.md, fontWeight: font.weight.semibold, color: color.text }}>
+        <span style={{ padding: '0 10px', fontSize: font.size.md, fontWeight: font.weight.semibold, color: th.text }}>
           {page} / {totalPages}
         </span>
-        <PageBtn disabled={page >= totalPages} onClick={() => onChange(page + 1)}>
+        <PageBtn th={th} disabled={page >= totalPages} onClick={() => onChange(page + 1)}>
           Next
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="m9 18 6-6-6-6" /></svg>
         </PageBtn>
@@ -246,41 +229,41 @@ function Pagination({ start, end, total, page, totalPages, onChange }) {
   );
 }
 
-function PageBtn({ children, onClick, disabled }) {
+function PageBtn({ th, children, onClick, disabled }) {
   return (
     <button onClick={onClick} disabled={disabled} style={{
       display: 'inline-flex', alignItems: 'center', gap: 4,
       padding: '6px 10px', height: 30,
-      background: color.surface, color: disabled ? color.textFaint : color.textMuted,
-      border: `1px solid ${color.border}`, borderRadius: radius.md,
+      background: th.surface, color: disabled ? th.textFaint : th.textMuted,
+      border: `1px solid ${th.border}`, borderRadius: radius.md,
       fontSize: font.size.md, fontWeight: font.weight.semibold,
       cursor: disabled ? 'not-allowed' : 'pointer',
       opacity: disabled ? 0.6 : 1,
       transition: 'background-color .15s, border-color .15s',
     }}
-      onMouseOver={e => { if (!disabled) { e.currentTarget.style.background = color.surfaceAlt; e.currentTarget.style.borderColor = color.borderStrong; } }}
-      onMouseOut={e => { e.currentTarget.style.background = color.surface; e.currentTarget.style.borderColor = color.border; }}
+      onMouseOver={e => { if (!disabled) { e.currentTarget.style.background = th.surfaceHover; e.currentTarget.style.borderColor = th.borderStrong; } }}
+      onMouseOut={e => { e.currentTarget.style.background = th.surface; e.currentTarget.style.borderColor = th.border; }}
     >{children}</button>
   );
 }
 
-function EmptyState({ title = 'Nothing to show here', description, action, icon, hasQuery }) {
+function EmptyState({ th, title = 'Nothing to show here', description, action, icon, hasQuery }) {
   return (
     <div style={{
       padding: '56px 24px', display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 8,
     }}>
       <div style={{
-        width: 48, height: 48, borderRadius: radius.lg, background: color.brand50,
-        color: color.brand600, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        width: 48, height: 48, borderRadius: radius.lg, background: 'rgba(16,185,129,0.1)',
+        color: color.brand500, display: 'flex', alignItems: 'center', justifyContent: 'center',
         marginBottom: 8,
       }}>
         {icon || <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z" /></svg>}
       </div>
-      <div style={{ fontSize: font.size.lg, fontWeight: font.weight.bold, color: color.text }}>
+      <div style={{ fontSize: font.size.lg, fontWeight: font.weight.bold, color: th.text }}>
         {hasQuery ? 'No results found' : title}
       </div>
-      <div style={{ fontSize: font.size.md, color: color.textSubtle, maxWidth: 360 }}>
+      <div style={{ fontSize: font.size.md, color: th.textSubtle, maxWidth: 360 }}>
         {hasQuery ? 'Try adjusting your search terms.' : description}
       </div>
       {action && !hasQuery && <div style={{ marginTop: 10 }}>{action}</div>}
@@ -288,10 +271,10 @@ function EmptyState({ title = 'Nothing to show here', description, action, icon,
   );
 }
 
-function SkeletonCell({ width = '80%' }) {
+function SkeletonCell({ th, width = '80%' }) {
   return <div style={{
     height: 14, width, borderRadius: radius.sm,
-    background: 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)',
+    background: `linear-gradient(90deg, ${th.border} 25%, ${th.surfaceHover} 50%, ${th.border} 75%)`,
     backgroundSize: '200% 100%', animation: 'admin-shimmer 1.4s infinite',
   }}>
     <style>{`@keyframes admin-shimmer { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }`}</style>

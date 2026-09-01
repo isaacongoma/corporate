@@ -10,6 +10,7 @@ import { FormField, Input, Textarea, Toggle } from './Form';
 import ImageUpload from './ImageUpload';
 import QuillEditor from './QuillEditor';
 import { color, font } from './theme';
+import { useTheme, themes } from '../context/ThemeContext';
 
 const slugify = (s) => (s || '').toLowerCase().trim()
   .replace(/['"]/g, '')
@@ -21,6 +22,8 @@ const EXCERPT_MAX = 280;
 
 export default function BlogEditor({ initial, mode = 'create' }) {
   const router = useRouter();
+  const { theme } = useTheme();
+  const th = themes[theme];
   const [form, setForm] = useState(() => ({
     id: initial?.id ?? null,
     title: initial?.title ?? '',
@@ -127,7 +130,7 @@ export default function BlogEditor({ initial, mode = 'create' }) {
 
               <FormField
                 label="URL Slug"
-                hint={<span style={{ color: color.textFaint }}>/{form.slug || 'your-post-url'}</span>}
+                hint={<span style={{ color: th.textFaint }}>/{form.slug || 'your-post-url'}</span>}
                 help="Auto-generated from the title. Click to customize."
               >
                 <Input
@@ -140,7 +143,7 @@ export default function BlogEditor({ initial, mode = 'create' }) {
 
               <FormField
                 label="Short Description"
-                hint={<span style={{ color: excerptRemaining < 0 ? color.danger : color.textFaint }}>{excerptRemaining} chars left</span>}
+                hint={<span style={{ color: excerptRemaining < 0 ? color.danger : th.textFaint }}>{excerptRemaining} chars left</span>}
                 help="Shown on blog listings and social previews."
               >
                 <Textarea
@@ -155,17 +158,17 @@ export default function BlogEditor({ initial, mode = 'create' }) {
 
           <Card padding={0}>
             <div style={{
-              padding: '16px 20px', borderBottom: `1px solid ${color.divider}`,
+              padding: '16px 20px', borderBottom: `1px solid ${th.border}`,
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               fontFamily: font.family,
             }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: color.text }}>Content</h3>
-                <p style={{ margin: '2px 0 0', fontSize: 12, color: color.textSubtle }}>Rich-text editor. Use headings, lists, links and media.</p>
+                <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: th.text }}>Content</h3>
+                <p style={{ margin: '2px 0 0', fontSize: 12, color: th.textSubtle }}>Rich-text editor. Use headings, lists, links and media.</p>
               </div>
-              <div style={{ display: 'flex', gap: 10, fontSize: 12, color: color.textSubtle }}>
+              <div style={{ display: 'flex', gap: 10, fontSize: 12, color: th.textSubtle }}>
                 <span>{wordCount.toLocaleString()} words</span>
-                <span style={{ color: color.textFaint }}>•</span>
+                <span style={{ color: th.textFaint }}>•</span>
                 <span>~{readingMinutes} min read</span>
               </div>
             </div>
@@ -177,12 +180,12 @@ export default function BlogEditor({ initial, mode = 'create' }) {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20, position: 'sticky', top: 16 }}>
           <Card padding={0}>
-            <div style={{ padding: '16px 20px', borderBottom: `1px solid ${color.divider}` }}>
-              <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: color.text, fontFamily: font.family }}>Publishing</h3>
+            <div style={{ padding: '16px 20px', borderBottom: `1px solid ${th.border}` }}>
+              <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: th.text, fontFamily: font.family }}>Publishing</h3>
             </div>
             <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16, fontFamily: font.family }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 13, color: color.textMuted, fontWeight: 600 }}>Status</span>
+                <span style={{ fontSize: 13, color: th.textMuted, fontWeight: 600 }}>Status</span>
                 {form.published
                   ? <Badge variant="success" dot>Published</Badge>
                   : <Badge variant="default" dot>Draft</Badge>}
@@ -198,8 +201,8 @@ export default function BlogEditor({ initial, mode = 'create' }) {
           </Card>
 
           <Card padding={0}>
-            <div style={{ padding: '16px 20px', borderBottom: `1px solid ${color.divider}` }}>
-              <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: color.text, fontFamily: font.family }}>Featured Image</h3>
+            <div style={{ padding: '16px 20px', borderBottom: `1px solid ${th.border}` }}>
+              <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: th.text, fontFamily: font.family }}>Featured Image</h3>
             </div>
             <div style={{ padding: 20 }}>
               <ImageUpload

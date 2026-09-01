@@ -1,11 +1,15 @@
+"use client"
 import React from 'react';
-import { color, radius, shadow } from './theme';
+import { radius, shadow } from './theme';
+import { useTheme, themes } from '../context/ThemeContext';
 
 export default function Skeleton({ width = '100%', height = '14px', borderRadius = radius.sm, marginBottom = 8, style }) {
+  const { theme } = useTheme();
+  const th = themes[theme];
   return (
     <div style={{
       width, height, borderRadius, marginBottom,
-      background: 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)',
+      background: `linear-gradient(90deg, ${th.border} 25%, ${th.surfaceHover} 50%, ${th.border} 75%)`,
       backgroundSize: '200% 100%',
       animation: 'admin-shimmer 1.4s infinite',
       ...style,
@@ -21,10 +25,12 @@ export default function Skeleton({ width = '100%', height = '14px', borderRadius
 }
 
 export function TableSkeleton() {
+  const { theme } = useTheme();
+  const th = themes[theme];
   return (
     <div style={{
-      width: '100%', background: color.surface,
-      border: `1px solid ${color.border}`, borderRadius: radius.lg,
+      width: '100%', background: th.surface,
+      border: `1px solid ${th.border}`, borderRadius: radius.lg,
       boxShadow: shadow.xs, padding: 18,
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 18 }}>
@@ -37,10 +43,12 @@ export function TableSkeleton() {
 }
 
 export function CardSkeleton() {
+  const { theme } = useTheme();
+  const th = themes[theme];
   return (
     <div style={{
-      width: '100%', background: color.surface,
-      border: `1px solid ${color.border}`, borderRadius: radius.lg,
+      width: '100%', background: th.surface,
+      border: `1px solid ${th.border}`, borderRadius: radius.lg,
       boxShadow: shadow.xs, padding: 24,
     }}>
       <Skeleton height={22} width="32%" marginBottom={20} />

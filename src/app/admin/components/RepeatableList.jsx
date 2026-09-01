@@ -1,6 +1,7 @@
 "use client"
 import React from 'react';
-import { color, radius, font } from './theme';
+import { radius, font } from './theme';
+import { useTheme, themes } from '../context/ThemeContext';
 import Button, { IconButton } from './Button';
 import { FormField, Input } from './Form';
 
@@ -23,6 +24,8 @@ export default function RepeatableList({
   emptyRow = '',
   addLabel = 'Add item',
 }) {
+  const { theme } = useTheme();
+  const th = themes[theme];
   const add = () => onChange([...items, typeof emptyRow === 'function' ? emptyRow() : emptyRow]);
   const remove = (i) => onChange(items.filter((_, idx) => idx !== i));
   const move = (i, dir) => {
@@ -45,7 +48,7 @@ export default function RepeatableList({
           key={i}
           style={{
             display: 'flex', alignItems: 'flex-start', gap: 8,
-            background: color.surfaceAlt, border: `1px solid ${color.border}`,
+            background: th.surfaceHover, border: `1px solid ${th.border}`,
             borderRadius: radius.md, padding: '10px 12px',
           }}
         >
